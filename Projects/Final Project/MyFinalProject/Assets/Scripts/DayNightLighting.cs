@@ -13,30 +13,38 @@ public class DayNightLighting : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        mainLight = GetComponent<Light2D>();
+        timeManager = GetComponent<TimeManager>();
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (mainLight == null)
+        if (mainLight == null || timeManager == null)
         {
             return;
         }
 
-        float hour = timeManager.currentHour;
+        float normalizeTime = timeManager.currentHour/24f;
 
         // day = bright, night = dark
-        if (hour >= 6f && hour < 18f)
+        if (lightIntensityCurve != null && lightIntensityCurve.length > 0)
         {
-            mainLight.intensity = 1f;
-            mainLight.color = Color.white;
+            mainLight.intensity = lightIntensityCurve.Evaluate(normalizeTime);
         }
-
         else
         {
-            mainLight.intensity = 0.3f;
-            mainLight.color = new Color(0.3f, 0.3f, 0.6f); // blue color at night
+            mainLight.intensity = (timeManager.currentHour >= 6f && timeManager.currentHour <= 18f) ? 1f : 0.2f;
+        }
+
+        // gradient color transitions
+        if (lightColorGradient != null)
+        {
+            mainLight.color = lightColorGradient.Evaluate(normalizeTime);
+        }
+        else
+        {
+            mainLight.color = (timeManager.currentHour >= 6f && timeManager.currentHour <= 18f) ? Color.white : new Color(0.5f, 0.5f, 1f, 1f);
         }
     }
 }
