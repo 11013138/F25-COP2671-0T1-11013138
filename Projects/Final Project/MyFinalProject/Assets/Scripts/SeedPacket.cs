@@ -20,4 +20,12 @@ public class SeedPacket : ScriptableObject
     public float growthTimePerStage = 10f;
 
     public float totalGrowthTime = 40f;
+
+    [Header("Light Requirements")]
+    [Range(0f, 1f)]
+    public float minLightRequirement = 0.2f; // 0..1 normalized light required to grow/plant
+
+    [Header("Harvest Output")]
+    public ItemData harvestItem;
+    public int harvestQuantity = 1;
 }

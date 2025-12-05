@@ -85,7 +85,7 @@ public class InventoryUI : MonoBehaviour
         // get all items from inventory
         List<InventoryItem> items = inventory.GetAllItems();
 
-        // CREATE SLOTS FOR ITEMS FIRST
+        // create slots for each item
         foreach (InventoryItem item in items)
         {
             CreateSlot(item);

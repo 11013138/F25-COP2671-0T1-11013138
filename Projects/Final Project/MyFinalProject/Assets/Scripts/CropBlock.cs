@@ -38,7 +38,7 @@ public class CropBlock
         if (currentState == CropState.Empty)
         {
             currentState = CropState.Tilled;
-            // TODO: set a tilled-soil tile if you have one
+            
         }
     }
 
@@ -70,11 +70,25 @@ public class CropBlock
     {
         if (currentState == CropState.Ready && seedPacket != null)
         {
-            if (seedPacket.harvestablePrefab != null)
+            // try to add to player's inventory if an ItemData is provided
+            if (seedPacket.harvestItem != null)
+            {
+                Inventory inv = Object.FindFirstObjectByType<Inventory>();
+                if (inv != null)
+                {
+                    inv.AddItem(seedPacket.harvestItem, seedPacket.harvestQuantity);
+                }
+                else if (seedPacket.harvestablePrefab != null)
+                {
+                    Object.Instantiate(seedPacket.harvestablePrefab, worldPosition, Quaternion.identity);
+                }
+            }
+            else if (seedPacket.harvestablePrefab != null)
             {
                 Object.Instantiate(seedPacket.harvestablePrefab, worldPosition, Quaternion.identity);
             }
 
+            // reset block
             currentState = CropState.Empty;
             seedPacket = null;
             currentGrowthStage = 0;
@@ -131,6 +145,13 @@ public class CropBlock
 
     public bool CanGrow(TimeManager timeManager)
     {
+        // use DayNightLighting when available
+        if (seedPacket != null && DayNightLighting.Instance != null)
+        {
+            return DayNightLighting.Instance.currentLightFactor >= seedPacket.minLightRequirement;
+        }
+
+        // fallback hour check
         return timeManager != null &&
                timeManager.currentHour >= 6f &&
                timeManager.currentHour <= 18f;

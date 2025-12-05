@@ -12,6 +12,8 @@ public enum FarmingTool
 }
 public class FarmingController : MonoBehaviour
 {
+    //variables
+
     [SerializeField] private Camera playerCamera;
     [SerializeField] private CropManager cropManager;
     [SerializeField] private SeedPacket selectedSeedPacket;
@@ -89,22 +91,42 @@ public class FarmingController : MonoBehaviour
                 break;
 
             case FarmingTool.Seed:
-                if (selectedBlock.CanPlant() && selectedSeedPacket != null)
+                if (selectedSeedPacket == null)
                 {
-                    // plany seed on block
+                    Debug.LogWarning("No seed selected.");
+                    break;
+                }
+
+                // check light before planting
+                if (DayNightLighting.Instance != null && DayNightLighting.Instance.currentLightFactor < selectedSeedPacket.minLightRequirement)
+                {
+                    Debug.LogWarning($"Too dark to plant {selectedSeedPacket.cropName}. Wait for more light.");
+                    break;
+                }
+
+                if (selectedBlock.CanPlant())
+                {
                     if (selectedBlock.PlantSeed(selectedSeedPacket))
                     {
-                        // if planted successfully, add to crop manager
                         cropManager.AddToPlantedCrops(selectedBlock);
                     }
                 }
                 break;
 
             case FarmingTool.Harvest:
+                // harvesting requires daytime light
                 if (selectedBlock.CanHarvest())
                 {
-                    selectedBlock.HarvestPlants();
-                    cropManager.RemoveFromPlantedCrops(selectedBlock);
+                    if (DayNightLighting.Instance != null && DayNightLighting.Instance.currentLightFactor < 0.15f)
+                    {
+                        Debug.LogWarning("Too dark to harvest. Come back during the day.");
+                        break;
+                    }
+
+                    if (selectedBlock.HarvestPlants())
+                    {
+                        cropManager.RemoveFromPlantedCrops(selectedBlock);
+                    }
                 }
                 break;    
         }
